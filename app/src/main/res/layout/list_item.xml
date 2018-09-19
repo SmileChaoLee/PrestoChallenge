@@ -15,6 +15,7 @@
         <ImageView android:id="@+id/showImageView"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
+            android:layout_marginLeft="5dp"
             android:layout_weight="1" />
 
         <TextView android:id="@+id/imageSizeTextView"
@@ -23,8 +24,10 @@
             android:typeface="monospace"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
+            android:layout_marginLeft="5dp"
             android:layout_weight="1"
-            android:textColor="#4ce6c7" />
+            android:textColor="#ffd900ff"
+            android:textStyle="bold"/>
 
         <TextView android:id="@+id/imageDimensionTextView"
             android:textSize="22sp"
@@ -32,8 +35,10 @@
             android:typeface="monospace"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
+            android:layout_marginLeft="5dp"
             android:layout_weight="1"
-            android:textColor="#ffb30e" />
+            android:textColor="#ff0000ff"
+            android:textStyle="bold"/>
 
         <TextView android:id="@+id/imageTitleTextView"
             android:textSize="22sp"
@@ -41,8 +46,10 @@
             android:typeface="monospace"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
+            android:layout_marginLeft="5dp"
             android:layout_weight="1"
-            android:textColor="#0e32ff" />
+            android:textColor="#ffff0000"
+            android:textStyle="bold"/>
 
     </LinearLayout>
 

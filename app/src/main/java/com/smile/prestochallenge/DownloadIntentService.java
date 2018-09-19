@@ -9,6 +9,10 @@ import android.os.SystemClock;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -53,6 +57,7 @@ public class DownloadIntentService extends IntentService {
         InputStream iStream = null;
         InputStreamReader iReader = null;
         HttpsURLConnection myConnection = null;
+        String flickrData = new String("");
 
         try {
             // use REST APIs
@@ -60,9 +65,9 @@ public class DownloadIntentService extends IntentService {
             myConnection = (HttpsURLConnection)url.openConnection();
             myConnection.setReadTimeout(15000);
             myConnection.setConnectTimeout(15000);
-            myConnection.setRequestMethod("POST");
+            myConnection.setRequestMethod("GET");
             myConnection.setDoInput(true);
-            myConnection.setDoOutput(true);  // for write data to web. This method triggers POST request
+            // myConnection.setDoOutput(true);  // for write data to web. This method triggers POST request
             int responseCode = myConnection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {  // value = 200
                 // successfully
@@ -76,8 +81,7 @@ public class DownloadIntentService extends IntentService {
                 while((readBuff=iReader.read()) != -1) {
                     sb.append((char)readBuff);
                 }
-                String flickrData = sb.toString();
-                Log.i(TAG, "Web output -> " + flickrData);
+                flickrData = sb.toString();
 
                 result = Activity.RESULT_OK;  // successfully downloaded
             }
@@ -112,6 +116,7 @@ public class DownloadIntentService extends IntentService {
 
         Bundle ex = new Bundle();
         ex.putInt("RESULT",result);
+        ex.putString("FlickrData", flickrData);
         notificationIntent.putExtras(ex);
 
         sendBroadcast(notificationIntent); // this will work for global broadcast receiver

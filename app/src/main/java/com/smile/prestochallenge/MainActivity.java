@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
@@ -22,6 +23,10 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
@@ -63,9 +68,9 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent = new Intent(MainActivity.this, DownloadIntentService.class);
         Bundle extras = new Bundle();
-        // extras.putString("URL_PATH", "https://api.flickr.com/services/rest/?api_key=949e98778755d1982f537d56236bbb42&method=flickr.photos.search");
+        // extras.putString("URL_PATH", "https://api.flickr.com/services/rest/?api_key=949e98778755d1982f537d56236bbb42&method=flickr.photos.search&format=json");
         // msg="Parameterless searches have been disabled. Please use flickr.photos.getRecent instead.
-        extras.putString("URL_PATH", "https://api.flickr.com/services/rest/?api_key=949e98778755d1982f537d56236bbb42&method=flickr.photos.getRecent");
+        extras.putString("URL_PATH", "https://api.flickr.com/services/rest/?api_key=949e98778755d1982f537d56236bbb42&method=flickr.photos.getRecent&format=json&nojsoncallback=1");
         intent.putExtras(extras);
         startService(intent);
         Log.d(TAG, "IntentService started.");
@@ -107,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
             if (dimensions == null) {
                 this.dimensions = new ArrayList<>();
             } else {
-                this.sizes = dimensions;
+                this.dimensions = dimensions;
             }
             if (titles == null) {
                 this.titles = new ArrayList<>();
@@ -191,8 +196,33 @@ public class MainActivity extends AppCompatActivity {
                     }
                     loadingTextView.setVisibility(View.GONE);
                     int result = extras.getInt("RESULT");
+                    String flickrData = extras.getString("FlickrData");
                     if (result == Activity.RESULT_OK) {
                         listView.setVisibility(View.VISIBLE);
+                        try {
+                            JSONObject jObject = new JSONObject(flickrData);
+                            JSONObject photos = jObject.getJSONObject("photos");
+                            JSONArray jPhotos = photos.getJSONArray("photo");
+                            int photosSize = jPhotos.length();
+
+                            imageBitmaps.clear();
+                            imageSizes.clear();
+                            imageDimensions.clear();
+                            imageTitles.clear();
+
+                            JSONObject json;
+                            for (int i=0; i<photosSize; i++) {
+                                json = (JSONObject) jPhotos.get(i);
+                                imageBitmaps.add(BitmapFactory.decodeResource(getResources(), R.drawable.smile));
+                                imageSizes.add("0");
+                                imageDimensions.add("10x10");
+                                imageTitles.add(json.getString("title"));
+                            }
+                            Log.i(TAG, "Json succeeded -> ");
+                        } catch(JSONException ex) {
+                            Log.i(TAG, "Json failed -> ");
+                            ex.printStackTrace();
+                        }
                         listView.setAdapter(new myListAdapter(MainActivity.this, R.layout.list_item, imageBitmaps, imageSizes, imageDimensions, imageTitles));
                         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                             @Override
