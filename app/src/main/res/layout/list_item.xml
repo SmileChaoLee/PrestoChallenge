@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/history_target"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:weightSum="4">
+
+        <ImageView android:id="@+id/showImageView"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <TextView android:id="@+id/imageSizeTextView"
+            android:textSize="22sp"
+            android:textScaleX="1.0"
+            android:typeface="monospace"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:textColor="#4ce6c7" />
+
+        <TextView android:id="@+id/imageDimensionTextView"
+            android:textSize="22sp"
+            android:textScaleX="1.0"
+            android:typeface="monospace"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:textColor="#ffb30e" />
+
+        <TextView android:id="@+id/imageTitleTextView"
+            android:textSize="22sp"
+            android:textScaleX="1.0"
+            android:typeface="monospace"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:textColor="#0e32ff" />
+
+    </LinearLayout>
+
+</LinearLayout>
