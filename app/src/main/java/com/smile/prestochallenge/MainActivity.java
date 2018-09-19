@@ -204,8 +204,8 @@ public class MainActivity extends AppCompatActivity {
 
             try {
                 // use REST APIs
-                int perPage = 3;
-                int pageNo = 1;
+                int perPage = 10;   // 10 photos per page
+                int pageNo = 1;     // display first page of output
                 URL searchUrl = new URL(getSearchUrl(perPage, pageNo));
                 myConnection = (HttpsURLConnection)searchUrl.openConnection();
                 myConnection.setReadTimeout(15000);
