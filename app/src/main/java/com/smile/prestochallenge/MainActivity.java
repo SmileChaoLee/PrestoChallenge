@@ -8,6 +8,8 @@ import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
@@ -24,23 +26,40 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.aetrion.flickr.Flickr;
+import com.aetrion.flickr.photos.Photo;
+import com.aetrion.flickr.photos.PhotoList;
+import com.smile.prestochallenge.Model.PhotoModel;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
+
+import javax.net.ssl.HttpsURLConnection;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
+    private static final String flickr_api_key = "949e98778755d1982f537d56236bbb42";
+    private static final String flickr_base_url = "https://api.flickr.com/services/rest/?api_key=" + flickr_api_key + "&format=json&nojsoncallback=1";
+    private static final String flickr_base_search_url = flickr_base_url + "&method=flickr.photos.search&tags=mode";
+    private static final String flickr_photo_detail_url = flickr_base_url + "&method=flickr.photos.getInfo&photo_id=";
+
     private ArrayList<Bitmap> imageBitmaps = new ArrayList();
     private ArrayList<String> imageSizes = new ArrayList();
     private ArrayList<String> imageDimensions = new ArrayList();
     private ArrayList<String> imageTitles = new ArrayList();
     private TextView loadingTextView;
     private ListView listView = null;
-
-    private BroadcastReceiver receiver = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,16 +83,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        receiver = new mainActivityReceiver();
-
-        Intent intent = new Intent(MainActivity.this, DownloadIntentService.class);
-        Bundle extras = new Bundle();
-        // extras.putString("URL_PATH", "https://api.flickr.com/services/rest/?api_key=949e98778755d1982f537d56236bbb42&method=flickr.photos.search&format=json");
-        // msg="Parameterless searches have been disabled. Please use flickr.photos.getRecent instead.
-        extras.putString("URL_PATH", "https://api.flickr.com/services/rest/?api_key=949e98778755d1982f537d56236bbb42&method=flickr.photos.getRecent&format=json&nojsoncallback=1");
-        intent.putExtras(extras);
-        startService(intent);
-        Log.d(TAG, "IntentService started.");
+        new FlickrAsyncTask().execute();
     }
 
     @Override
@@ -170,75 +180,142 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(DownloadIntentService.ActionName);
-        registerReceiver(receiver, filter);  // use global broadcast receiver
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(receiver);    // use global broadcast receiver
     }
 
-    private class mainActivityReceiver extends BroadcastReceiver {
+    private class FlickrAsyncTask extends AsyncTask<Void, Void, Integer[]> {
+
         @Override
-        public void onReceive(Context context,Intent intent) {
-            System.out.println("onReceive() is called.");
-            loadingTextView.setVisibility(View.GONE);
-            Bundle extras = null;
-            String action = intent.getAction();
-            switch (action) {
-                case DownloadIntentService.ActionName:
-                    extras = intent.getExtras();
-                    if (extras == null) {
-                        return;
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Integer[] doInBackground(Void... voids) {
+
+            Integer result[] = new Integer[1];
+
+            result[0] = Activity.RESULT_CANCELED;
+
+            InputStream iStream = null;
+            InputStreamReader iReader = null;
+            HttpsURLConnection myConnection = null;
+            String flickrData = new String("");
+
+            try {
+                // use REST APIs
+                int perPage = 3;
+                int pageNo = 1;
+                URL searchUrl = new URL(getSearchUrl(perPage, pageNo));
+                myConnection = (HttpsURLConnection)searchUrl.openConnection();
+                myConnection.setReadTimeout(15000);
+                myConnection.setConnectTimeout(15000);
+                myConnection.setRequestMethod("GET");
+                myConnection.setDoInput(true);
+                // myConnection.setDoOutput(true);  // for write data to web. This method triggers POST request
+                int responseCode = myConnection.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK) {  // value = 200
+                    // successfully
+                    iStream = myConnection.getInputStream();
+                    iReader = new InputStreamReader(iStream,"UTF-8");
+
+                    StringBuilder sb = new StringBuilder("");
+                    int readBuff = -1;
+                    while((readBuff=iReader.read()) != -1) {
+                        sb.append((char)readBuff);
                     }
-                    loadingTextView.setVisibility(View.GONE);
-                    int result = extras.getInt("RESULT");
-                    String flickrData = extras.getString("FlickrData");
-                    if (result == Activity.RESULT_OK) {
-                        listView.setVisibility(View.VISIBLE);
-                        try {
-                            JSONObject jObject = new JSONObject(flickrData);
-                            JSONObject photos = jObject.getJSONObject("photos");
-                            JSONArray jPhotos = photos.getJSONArray("photo");
-                            int photosSize = jPhotos.length();
+                    flickrData = sb.toString();
 
-                            imageBitmaps.clear();
-                            imageSizes.clear();
-                            imageDimensions.clear();
-                            imageTitles.clear();
+                    try {
+                        JSONObject jObject = new JSONObject(flickrData);
+                        JSONObject photos = jObject.getJSONObject("photos");
+                        JSONArray jPhotos = photos.getJSONArray("photo");
 
-                            JSONObject json;
-                            for (int i=0; i<photosSize; i++) {
-                                json = (JSONObject) jPhotos.get(i);
-                                imageBitmaps.add(BitmapFactory.decodeResource(getResources(), R.drawable.smile));
-                                imageSizes.add("0");
-                                imageDimensions.add("10x10");
-                                imageTitles.add(json.getString("title"));
-                            }
-                            Log.i(TAG, "Json succeeded -> ");
-                        } catch(JSONException ex) {
-                            Log.i(TAG, "Json failed -> ");
-                            ex.printStackTrace();
+                        int photosSize = jPhotos.length();
+
+                        JSONObject json;
+
+                        PhotoModel photoModel;
+                        ArrayList<PhotoModel> photoModels= new ArrayList<>();
+
+                        for (int i=0; i<photosSize; i++) {
+                            json = (JSONObject) jPhotos.get(i);
+                            photoModel = new PhotoModel(json, flickr_photo_detail_url);
+                            photoModels.add(photoModel);
+                            imageBitmaps.add(photoModel.getPhotoBitmap());
+                            imageSizes.add(String.valueOf(photoModel.getPhotoSize()));
+                            imageDimensions.add(photoModel.getPhotoDimension());
+                            imageTitles.add(photoModel.getPhotoTitle());
                         }
-                        listView.setAdapter(new myListAdapter(MainActivity.this, R.layout.list_item, imageBitmaps, imageSizes, imageDimensions, imageTitles));
-                        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                            @Override
-                            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        result[0] = Activity.RESULT_OK;
 
-                            }
-                        });
-                        Toast.makeText(context,"Download succeeded.",Toast.LENGTH_LONG).show();
-                    } else {
-                        // download failed
-                        Toast.makeText(context,"Download failed.",Toast.LENGTH_LONG).show();
+                    } catch (Exception e) {
+                        Log.i(TAG, "Exception happened -> ");
+                        e.printStackTrace();
                     }
-                    break;
-                default:
-                    break;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("Exception.");
+            } finally {
+                if (iReader != null)
+                {
+                    try {
+                        iReader.close();
+                    } catch (IOException e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+                if (iStream != null) {
+                    try {
+                        iStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (myConnection != null) {
+                    // disconnect the resource
+                    myConnection.disconnect();
+                }
+            }
+            return result;
+        }
+
+
+        @Override
+        protected void onPostExecute(Integer[] result) {
+            super.onPostExecute(result);
+            loadingTextView.setVisibility(View.GONE);
+            listView.setVisibility(View.VISIBLE);
+            if (result != null) {
+                if (result[0] == Activity.RESULT_OK) {
+                    Toast.makeText(MainActivity.this,"Download succeeded.",Toast.LENGTH_LONG).show();
+                    listView.setAdapter(new myListAdapter(MainActivity.this, R.layout.list_item, imageBitmaps, imageSizes, imageDimensions, imageTitles));
+                    /*
+                    listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+                        }
+                    });
+                    */
+                } else {
+                    Toast.makeText(MainActivity.this,"Download failed.",Toast.LENGTH_LONG).show();
+                }
+            } else {
+                Toast.makeText(MainActivity.this,"Download no result.",Toast.LENGTH_LONG).show();
             }
         }
+    }
+
+    private String getSearchUrl(int perPage, int pageNo) {
+
+        String sUrl = flickr_base_search_url + "&per_page=" + perPage + "&page=" + pageNo;
+        return  sUrl;
     }
 }
