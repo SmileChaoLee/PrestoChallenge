@@ -10,46 +10,43 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:weightSum="4">
+        android:weightSum="8">
 
         <ImageView android:id="@+id/showImageView"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
-            android:layout_marginLeft="5dp"
-            android:layout_weight="1" />
+            android:layout_margin="0dp"
+            android:layout_weight="3" />
 
         <TextView android:id="@+id/imageSizeTextView"
-            android:textSize="22sp"
+            android:textSize="20sp"
             android:textScaleX="1.0"
             android:typeface="monospace"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
-            android:layout_marginLeft="5dp"
+            android:layout_margin="0dp"
             android:layout_weight="1"
-            android:textColor="#ffd900ff"
-            android:textStyle="bold"/>
+            android:textColor="#ffd900ff" />
 
         <TextView android:id="@+id/imageDimensionTextView"
-            android:textSize="22sp"
+            android:textSize="20sp"
             android:textScaleX="1.0"
             android:typeface="monospace"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
-            android:layout_marginLeft="5dp"
+            android:layout_margin="0dp"
             android:layout_weight="1"
-            android:textColor="#ff0000ff"
-            android:textStyle="bold"/>
+            android:textColor="#ff0000ff" />
 
         <TextView android:id="@+id/imageTitleTextView"
-            android:textSize="22sp"
+            android:textSize="20sp"
             android:textScaleX="1.0"
             android:typeface="monospace"
             android:layout_width="wrap_content"
             android:layout_height="0dp"
-            android:layout_marginLeft="5dp"
-            android:layout_weight="1"
-            android:textColor="#ffff0000"
-            android:textStyle="bold"/>
+            android:layout_margin="0dp"
+            android:layout_weight="3"
+            android:textColor="#ffff0000" />
 
     </LinearLayout>
 

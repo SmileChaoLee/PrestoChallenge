@@ -26,9 +26,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.aetrion.flickr.Flickr;
-import com.aetrion.flickr.photos.Photo;
-import com.aetrion.flickr.photos.PhotoList;
 import com.smile.prestochallenge.Model.PhotoModel;
 
 import org.json.JSONArray;
@@ -154,13 +151,12 @@ public class MainActivity extends AppCompatActivity {
             }
 
             int listViewHeight = parent.getHeight();
-            int itemNum = 4;
-            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                itemNum = 3;
-            }
+            int itemNum = 2;
+
             int itemHeight = listViewHeight / itemNum;    // items for one screen
             ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
             layoutParams.height = itemHeight;
+
             // view.setLayoutParams(layoutParams);  // no needed
 
             ImageView showImageView = view.findViewById(R.id.showImageView);
@@ -247,7 +243,7 @@ public class MainActivity extends AppCompatActivity {
                             photoModel = new PhotoModel(json, flickr_photo_detail_url);
                             photoModels.add(photoModel);
                             imageBitmaps.add(photoModel.getPhotoBitmap());
-                            imageSizes.add(String.valueOf(photoModel.getPhotoSize()));
+                            imageSizes.add(String.valueOf(photoModel.getPhotoSize()) + " bytes");
                             imageDimensions.add(photoModel.getPhotoDimension());
                             imageTitles.add(photoModel.getPhotoTitle());
                         }

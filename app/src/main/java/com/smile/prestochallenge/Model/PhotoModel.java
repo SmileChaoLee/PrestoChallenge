@@ -37,10 +37,7 @@ public class PhotoModel {
 
     public PhotoModel(JSONObject json, String flickr_photo_detail_url) {
         try {
-            photoSize = 100;
-            photoDimension = "10 x 10";
             photoTitle = json.getString("title");
-
             id = json.getString("id");
             farm = json.getInt("farm");
             server = json.getString("server");
@@ -51,6 +48,16 @@ public class PhotoModel {
             originalFormat = jObj.getString("originalformat");
             photoUrl = "https://farm" + farm + ".staticflickr.com/" + server + "/" + id + "_" + secret + "." + originalFormat;
             photoBitmap = getPhoto();
+            if (photoBitmap != null) {
+                photoSize = photoBitmap.getByteCount();
+                int width = photoBitmap.getWidth();
+                int height = photoBitmap.getHeight();
+                photoDimension = String.valueOf(width) + "x" + String.valueOf(height);
+            } else {
+                photoSize = 0;
+                photoDimension = "";
+            }
+
 
         } catch (JSONException ex) {
             ex.printStackTrace();
